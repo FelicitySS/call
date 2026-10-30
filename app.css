@@ -1,0 +1,1101 @@
+/* 去见他 · 前端测试版（样式沿用「打电话」的 iOS 手机风） */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --green: #34c759;
+  --red: #ff3b30;
+  --blue: #0a84ff;
+  --ios-bg: #f2f2f7;
+  --ios-card: #fff;
+  --ios-line: rgba(60, 60, 67, .18);
+  --label2: rgba(60, 60, 67, .6);
+  --text: #000;
+  --fill: #e5e5ea;
+  --fill2: #e8e8ed;
+  --tabbar-bg: rgba(255, 255, 255, .88);
+}
+
+/* 主题（设置页可切换） */
+.phone[data-theme="sakura"] {
+  --ios-bg: #fdf0f4;
+  --blue: #e75480;
+  --label2: rgba(130, 70, 90, .6);
+}
+.phone[data-theme="violet"] {
+  --ios-bg: #f2effb;
+  --blue: #7c5cf6;
+  --label2: rgba(90, 70, 140, .6);
+}
+.phone[data-theme="dark"] {
+  --ios-bg: #0e0e12;
+  --ios-card: #1c1c1e;
+  --ios-line: rgba(84, 84, 88, .65);
+  --label2: rgba(235, 235, 245, .6);
+  --text: #fff;
+  --fill: #2c2c2e;
+  --fill2: #3a3a3c;
+  --tabbar-bg: rgba(40, 40, 46, .88);
+}
+
+html, body {
+  height: 100%;
+  background: #111;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+  color: #000;
+  overflow: hidden;
+}
+
+/* 手机壳 */
+.phone {
+  position: relative;
+  width: 100%;
+  max-width: 390px;
+  height: 100dvh;
+  max-height: 844px;
+  margin: 0 auto;
+  background: var(--ios-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  color: var(--text);
+}
+@media (min-width: 430px) and (min-height: 880px) {
+  body { display: flex; align-items: center; justify-content: center; }
+  .phone {
+    height: 844px;
+    border-radius: 44px;
+    box-shadow: 0 0 0 12px #1c1c1e, 0 24px 60px rgba(0, 0, 0, .55);
+    overflow: hidden;
+  }
+}
+
+/* 状态栏 */
+.statusbar {
+  height: 48px;
+  flex: 0 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 26px 0;
+  font-size: 15px;
+  font-weight: 600;
+  z-index: 30;
+}
+.sb-right { display: inline-flex; gap: 5px; align-items: center; }
+.sb-right svg { fill: currentColor; }
+.phone.call-mode .statusbar { color: #fff; }
+
+/* 屏幕切换 */
+.screen {
+  position: absolute;
+  inset: 48px 0 0 0;
+  display: none;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.screen.active { display: flex; }
+/* 滚动区域一律不显示滚动条 */
+.screen, .chat-scroll, .persona-text {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.screen::-webkit-scrollbar,
+.chat-scroll::-webkit-scrollbar,
+.persona-text::-webkit-scrollbar { width: 0; height: 0; }
+.screen.call { inset: 0; z-index: 20; color: #fff; }
+/* 带底部导航的页面给 tabbar 让位 */
+.screen.tabbed { inset: 48px 0 76px 0; }
+
+/* ===== 底部导航（贴边） ===== */
+.tabbar {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 0;
+  z-index: 25;
+  display: flex;
+  padding: 8px 6px calc(20px + env(safe-area-inset-bottom, 0px));
+  background: var(--tabbar-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border-top: .5px solid var(--ios-line);
+}
+.tab-item {
+  flex: 1;
+  border: 0;
+  border-radius: 17px;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: 10.5px;
+  letter-spacing: .5px;
+  color: var(--label2);
+  transition: color .2s, background .2s;
+}
+.tab-item.active {
+  color: var(--blue);
+}
+.tab-item:active { transform: scale(.96); }
+.tab-ico {
+  display: flex;
+  width: 23px; height: 23px;
+}
+.tab-ico svg {
+  width: 100%; height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tab-item.active .tab-ico svg { stroke-width: 2; }
+
+/* 导航 */
+.nav {
+  height: 44px;
+  flex: 0 0 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+.nav-title { font-size: 17px; font-weight: 600; }
+.nav-side { min-width: 72px; display: flex; }
+.nav-side:last-child { justify-content: flex-end; }
+.link-btn {
+  border: 0; background: none; color: var(--blue);
+  font-size: 17px; padding: 6px 8px; cursor: pointer; font-family: inherit;
+}
+.link-btn:disabled { color: #c7c7cc; cursor: default; }
+
+/* 搜索条（装饰，两边顶格） */
+.searchbar {
+  margin: 6px 0 8px;
+  background: rgba(118, 118, 128, .12);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  color: var(--label2);
+  font-size: 15px;
+}
+.search-ico {
+  width: 15px; height: 15px;
+  flex: 0 0 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.section-label {
+  padding: 6px 16px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--label2);
+}
+
+/* ===== 联系人列表 ===== */
+.contact-list { list-style: none; background: var(--ios-card); }
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: .5px solid var(--ios-line);
+}
+.contact-row:last-child { border-bottom: 0; }
+.contact-row:active { background: rgba(0, 0, 0, .05); }
+
+.avatar {
+  width: 42px; height: 42px;
+  flex: 0 0 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 12%;
+  background: #ddd;
+}
+.avatar-xl {
+  width: 96px; height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+/* 无照片：纯色圆 + 首字 */
+.avatar.solid, .avatar-xl.solid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+}
+.avatar.solid { font-size: 18px; }
+.avatar-xl.solid { font-size: 38px; }
+
+.cinfo { flex: 1; min-width: 0; }
+.cname { font-size: 17px; }
+.csub {
+  font-size: 12.5px;
+  color: var(--label2);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chevron { color: #c7c7cc; font-size: 22px; font-weight: 300; }
+/* 未读角标（微信样式）：红底白字，压在头像右上角 */
+.avatar-box { position: relative; flex: 0 0 42px; width: 42px; height: 42px; }
+.avatar-box .avatar { flex: 0 0 42px; }
+.unread {
+  position: absolute;
+  top: -5px; right: -7px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #fa5151;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 15px;
+  text-align: center;
+  box-sizing: border-box;
+  border: 1.5px solid var(--ios-card);
+}
+/* 会话列表右侧时间（微信样式） */
+.chat-time { font-size: 11px; color: #b0b0b8; align-self: flex-start; margin-top: 4px; }
+.hint { text-align: center; color: var(--label2); font-size: 13px; margin: 18px 0; }
+
+/* 未解锁（未设置人设）：整行灰显 + 设置人设按钮 */
+.contact-row.locked .avatar,
+.contact-row.locked .avatar-xl { filter: grayscale(1); opacity: .55; }
+.contact-row.locked .cname { color: #9a9aa0; }
+.contact-row.locked .csub { color: #b8b8be; }
+.card.gap-top { margin-top: 18px; }
+
+/* ===== 添加联系人 ===== */
+.add-hero { text-align: center; padding: 22px 0 10px; }
+.add-hero.small { padding-top: 12px; }
+.add-hero h2 { font-size: 22px; font-weight: 600; margin-top: 10px; }
+.photo-pick {
+  width: 88px; height: 88px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: var(--fill);
+  border: 1px dashed #c2c2c8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--label2);
+  font-size: 11px;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+.photo-pick img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.photo-pick .plus { font-size: 24px; line-height: 1; font-weight: 300; }
+
+.row-input {
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--blue);
+  text-align: right;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+.row-input::placeholder { color: #c7c7cc; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.shake { animation: shake .4s; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--red); }
+
+/* ===== 词条标签 ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+}
+.chip {
+  padding: 7px 13px;
+  border-radius: 16px;
+  background: var(--ios-card);
+  border: .5px solid var(--ios-line);
+  font-size: 13px;
+  color: var(--label2);
+  cursor: pointer;
+}
+.chip:active { background: var(--fill2); }
+.chip.on { background: rgba(10, 132, 255, .12); color: var(--blue); border-color: rgba(10, 132, 255, .35); }
+
+/* ===== 关于他 · 设置页分区 ===== */
+.avatar-zone { text-align: center; padding: 28px 0 0; }
+.avatar-zone .avatar-xl { width: 92px; height: 92px; }
+
+/* 头像右下角小相机角标 */
+.avatar-wrap {
+  display: inline-block;
+  cursor: pointer;
+  position: relative;
+  line-height: 0;
+}
+.cam-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  border: 2.5px solid var(--ios-bg);
+}
+.cam-badge svg {
+  width: 13px; height: 13px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.name-zone { text-align: center; padding: 14px 28px 20px; }
+.name-input {
+  border: 0;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-align: center;
+  width: 100%;
+  color: var(--text);
+}
+.name-input::placeholder { color: var(--label2); font-weight: 400; letter-spacing: 0; }
+
+/* 关于他 · 文字描述区 */
+.persona-text {
+  display: block;
+  width: auto;
+  min-height: 200px;
+  margin: 2px 16px 0;
+  border: 0;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.7;
+  padding: 18px 20px;
+  color: var(--text);
+  background: var(--ios-card);
+  border-radius: 16px;
+  scrollbar-width: none;
+}
+.persona-text::placeholder { color: var(--label2); }
+
+/* 形象图上传（通话背景） */
+.image-pick {
+  margin: 2px 16px 0;
+  height: 168px;
+  border-radius: 16px;
+  background: var(--fill);
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-pick.empty {
+  background: transparent;
+  border: 1px dashed var(--ios-line);
+}
+.image-pick:active { filter: brightness(.97); }
+.image-pick img {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.image-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--label2);
+  font-size: 12px;
+}
+.image-ph .plus {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: var(--fill2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+/* ===== 设置页：关于我 / 主题 ===== */
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.profile-row .avatar { flex: 0 0 52px; width: 52px; height: 52px; font-size: 22px; }
+.profile-row input {
+  border: 0;
+  background: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 17px;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+}
+.profile-row input::placeholder { color: var(--label2); }
+
+.theme-row {
+  display: flex;
+  padding: 14px 8px;
+}
+.theme-opt {
+  flex: 1;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--label2);
+}
+.theme-opt .swatch {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--ios-line);
+}
+.theme-opt.on { color: var(--blue); }
+.theme-opt.on .swatch { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ===== 关于他 · 人物卡片宫格（区别于通讯录列表） ===== */
+.him-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.him-card {
+  background: var(--ios-card);
+  border-radius: 16px;
+  padding: 20px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.him-card:active { background: var(--fill2); }
+.avatar-him {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+.avatar-him.solid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 600;
+}
+.him-name {
+  font-size: 15px;
+  font-weight: 600;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.him-status {
+  font-size: 11px;
+  padding: 3px 11px;
+  border-radius: 11px;
+}
+.him-status.on { background: rgba(52, 199, 89, .12); color: var(--green); }
+.him-status.off { background: rgba(10, 132, 255, .1); color: var(--blue); }
+
+/* ===== 联系人详情 ===== */
+.contact-hero { text-align: center; padding: 18px 0 8px; }
+.contact-hero h1 { font-size: 26px; font-weight: 600; margin-top: 10px; }
+.contact-hero .sub { color: var(--label2); font-size: 15px; margin-top: 2px; }
+
+.action-grid {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+}
+.action {
+  flex: 1;
+  background: var(--ios-card);
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 4px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--blue);
+  cursor: pointer;
+  font-family: inherit;
+}
+.action:disabled { opacity: .45; cursor: default; }
+.action:not(:disabled):active { background: var(--fill2); }
+.a-ico {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px;
+}
+.a-ico.green { background: var(--green); }
+.a-ico svg {
+  width: 20px; height: 20px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* 导航里的线条图标（如打电话） */
+.link-btn .ico {
+  width: 23px; height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: middle;
+}
+
+.card {
+  margin: 0 16px;
+  background: var(--ios-card);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  font-size: 16px;
+  border-bottom: .5px solid var(--ios-line);
+  cursor: default;
+}
+.card-row:last-child { border-bottom: 0; }
+.card-row .k { color: var(--label2); flex: 0 0 auto; }
+.card-row .v {
+  text-align: right;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 62%;
+}
+.card-row.tappable { cursor: pointer; }
+.card-row.tappable:active { background: rgba(0, 0, 0, .05); }
+.card-row .go { color: #c7c7cc; }
+/* 删除联系人：居中红字 */
+.del-row {
+  justify-content: center;
+  color: var(--red);
+}
+
+/* ===== 充话费 · VIP 兑换 ===== */
+.vip-hero {
+  margin: 18px 16px 0;
+  border-radius: 18px;
+  padding: 28px 20px;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 55%, #fff));
+  transition: background .35s;
+}
+.vip-hero.on { background: linear-gradient(135deg, #f6c445, #e8a020); }
+.vip-badge {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  text-indent: 8px;
+}
+.vip-state { margin-top: 10px; font-size: 17px; font-weight: 600; }
+.vip-sub { margin-top: 5px; font-size: 12.5px; opacity: .85; }
+
+.btn-primary {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 14px 16px 0;
+  height: 46px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--blue);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.btn-primary:active { filter: brightness(.92); }
+
+.vip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  font-size: 14px;
+  color: var(--text);
+  border-bottom: .5px solid var(--ios-line);
+}
+.vip-row:last-child { border-bottom: 0; }
+.vip-row .ok-ico {
+  width: 16px; height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ===== 通话页（与「打电话」一致） ===== */
+.screen.call { background: #000; }
+.call-bg {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+.call-shade {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(0, 0, 0, .55) 0%, rgba(0, 0, 0, .12) 28%,
+    rgba(0, 0, 0, .12) 46%, rgba(0, 0, 0, .62) 72%, rgba(0, 0, 0, .82) 100%);
+}
+
+.call-top {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 68px 20px 0;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+}
+.call-name { font-size: 32px; font-weight: 500; letter-spacing: 1px; }
+.call-timer {
+  margin-top: 8px;
+  font-size: 16px;
+  opacity: .92;
+  font-variant-numeric: tabular-nums;
+}
+
+.call-mid {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 22px 10px;
+  gap: 10px;
+}
+.subtitle {
+  align-self: center;
+  max-width: 92%;
+  background: rgba(0, 0, 0, .42);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+.sub-label { font-size: 12px; opacity: .75; margin-bottom: 4px; }
+.sub-text { font-size: 18px; line-height: 1.5; }
+.thinking {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  opacity: .9;
+  background: rgba(0, 0, 0, .35);
+  padding: 8px 14px;
+  border-radius: 20px;
+}
+.thinking .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fff;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.thinking .dot:nth-child(2) { animation-delay: .18s; }
+.thinking .dot:nth-child(3) { animation-delay: .36s; }
+@keyframes blink {
+  0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+.err {
+  align-self: center;
+  background: rgba(255, 59, 48, .8);
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  max-width: 92%;
+}
+
+.hidden { display: none !important; }
+
+.call-bottom {
+  position: relative;
+  z-index: 2;
+  padding: 0 22px calc(18px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* 输入行 */
+.input-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+.input-row input {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 16px;
+  padding: 0 16px;
+  outline: none;
+}
+.input-row input::placeholder { color: rgba(255, 255, 255, .6); }
+.send-btn {
+  height: 44px;
+  min-width: 68px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--blue);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.send-btn:disabled { opacity: .5; }
+.send-btn:not(:disabled):active { filter: brightness(.88); }
+
+/* 功能按钮行 */
+.call-tools {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+.tool {
+  width: 76px;
+  border: 0;
+  background: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.tool .t-ico {
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+.tool .t-ico svg {
+  width: 26px; height: 26px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tool.on .t-ico { background: #fff; color: #111; }
+.tool .t-label { font-size: 11px; opacity: .92; }
+.tool:active .t-ico { filter: brightness(.85); }
+
+/* 挂断 */
+.hangup {
+  width: 70px; height: 70px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--red);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(255, 59, 48, .4);
+}
+.hangup:active { filter: brightness(.9); transform: scale(.96); }
+.hangup svg { transform: rotate(135deg); }
+
+.home-indicator {
+  width: 134px; height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, .55);
+  margin-top: 2px;
+}
+
+/* ===== 短信聊天（iMessage 样式，与「打电话」一致） ===== */
+.screen.chat {
+  background: var(--ios-card);
+  color: var(--text);
+  overflow: hidden;
+}
+.chat-nav {
+  border-bottom: .5px solid var(--ios-line);
+  flex: 0 0 44px;
+}
+.chat-peer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--label2);
+  flex: 1;
+}
+.chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* 消息行：左右都带头像 */
+.bubble-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+.bubble-row.me { justify-content: flex-end; }
+.bubble-row .bubble { align-self: auto; }
+.avatar-xs {
+  width: 36px; height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+.avatar-xs.solid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+.chat-day {
+  text-align: center;
+  font-size: 11px;
+  color: var(--label2);
+  margin: 6px 0 8px;
+}
+/* 聊天记录里的电话符号（线条风） */
+.call-ico {
+  width: 15px; height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+.chat-no {
+  text-align: center;
+  color: var(--label2);
+  font-size: 13px;
+  margin: 40px 0;
+}
+.bubble {
+  max-width: 76%;
+  padding: 9px 13px;
+  border-radius: 18px;
+  font-size: 16px;
+  line-height: 1.4;
+  word-break: break-word;
+  user-select: text;
+}
+.bubble.me {
+  align-self: flex-end;
+  background: var(--blue);
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.bubble.them {
+  align-self: flex-start;
+  background: var(--fill);
+  color: var(--text);
+  border-bottom-left-radius: 5px;
+}
+.typing-them {
+  align-self: flex-start;
+  background: var(--fill);
+  border-radius: 18px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 4px;
+}
+.typing-them .dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #8e8e93;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.typing-them .dot:nth-child(2) { animation-delay: .18s; }
+.typing-them .dot:nth-child(3) { animation-delay: .36s; }
+
+.chat-input-row {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 6px;
+  border-top: .5px solid var(--ios-line);
+}
+.chat-input-row input {
+  flex: 1;
+  height: 36px;
+  border-radius: 18px;
+  border: 1px solid var(--ios-line);
+  background: var(--ios-card);
+  color: var(--text);
+  font-size: 16px;
+  padding: 0 14px;
+  outline: none;
+}
+.chat-send {
+  width: 34px; height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--green);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.chat-send:disabled { background: #c7c7cc; }
+.chat-send:not(:disabled):active { filter: brightness(.9); }
+.home-indicator.dark { background: rgba(0, 0, 0, .35); margin: 4px auto 8px; }
+
+/* ===== 聊天页右上角 ＋ 下拉菜单（微信样式） ===== */
+.pm-mask {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+}
+.plus-menu {
+  position: absolute;
+  top: 84px;
+  right: 12px;
+  z-index: 41;
+  min-width: 156px;
+  background: rgba(43, 43, 48, .94);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .35);
+}
+/* 右上角小箭头 */
+.plus-menu::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  right: 18px;
+  border: 7px solid transparent;
+  border-top: 0;
+  border-bottom-color: rgba(43, 43, 48, .94);
+}
+.pm-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  padding: 13px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.pm-item:active { background: rgba(255, 255, 255, .12); }
+.pm-ico { font-size: 17px; }
+
+/* 轻提示 */
+.toast {
+  position: absolute;
+  left: 50%;
+  bottom: 120px;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: rgba(0, 0, 0, .78);
+  color: #fff;
+  font-size: 13px;
+  padding: 10px 18px;
+  border-radius: 18px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 桌面端鼠标 */
+@media (hover: hover) {
+  .contact-row:hover .cname { color: var(--blue); }
+}

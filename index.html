@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>去见他 · 前端测试版</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="phone" id="phone">
+
+  <!-- 状态栏 -->
+  <div class="statusbar">
+    <span class="sb-time" id="sbTime">21:04</span>
+    <span class="sb-right">
+      <svg viewBox="0 0 26 12" width="25" height="11"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="16" height="8" rx="1.5"/><path d="M23 4 v4 a2.2 2.2 0 0 0 0-4z" opacity=".45"/></svg>
+    </span>
+  </div>
+
+  <!-- ① 聊天 · 会话列表（微信样式） -->
+  <section class="screen tabbed active" id="screenChatList">
+    <header class="nav">
+      <div class="nav-side"></div>
+      <div class="nav-title">聊天</div>
+      <div class="nav-side"><button class="link-btn" id="btnPlus">＋</button></div>
+    </header>
+    <div class="searchbar">
+      <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
+      <span>搜索</span>
+    </div>
+    <ul class="contact-list" id="chatList"></ul>
+    <div class="hint" id="chatListHint">还没有聊天记录<br>去「通讯录」找 TA 聊聊吧</div>
+  </section>
+
+  <!-- ①b 聊天窗口（点会话进去） -->
+  <section class="screen chat" id="screenChatRoom">
+    <header class="nav chat-nav">
+      <div class="nav-side"><button class="link-btn" id="btnChatBack">‹ 聊天</button></div>
+      <div class="chat-peer">
+        <span id="chatPeerName">柏源</span>
+      </div>
+      <div class="nav-side"><button class="link-btn" id="btnChatCall"><svg class="ico" viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 13l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></svg></button></div>
+    </header>
+
+    <div class="chat-scroll" id="chatScroll">
+      <div class="chat-day">今天</div>
+      <div class="chat-no hidden" id="chatNoMsg">你和 TA 的对话从这里开始</div>
+    </div>
+
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="信息" autocomplete="off" maxlength="500">
+      <button id="chatSend" class="chat-send" disabled>
+        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#fff" d="M12 4l7 7-1.5 1.5L13 8.5V20h-2V8.5l-4.5 4L5 11z"/></svg>
+      </button>
+    </div>
+    <div class="home-indicator dark"></div>
+  </section>
+
+  <!-- ② 通讯录 -->
+  <section class="screen tabbed" id="screenContacts">
+    <header class="nav">
+      <div class="nav-side"></div>
+      <div class="nav-title">通讯录</div>
+      <div class="nav-side"><button class="link-btn" id="btnAdd">＋ 添加</button></div>
+    </header>
+    <div class="searchbar">
+      <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
+      <span>搜索</span>
+    </div>
+    <ul class="contact-list" id="contactList"></ul>
+    <div class="hint" id="listHint">还没有联系人，点右上角「＋ 添加」<br>添加后填写「关于他」即可解锁</div>
+    <div class="hint hidden" id="listCount"></div>
+  </section>
+
+  <!-- ③ 设置 -->
+  <section class="screen tabbed" id="screenSettings">
+    <header class="nav">
+      <div class="nav-side"></div>
+      <div class="nav-title">设置</div>
+      <div class="nav-side"></div>
+    </header>
+
+    <!-- 关于我 -->
+    <div class="section-label">关于我</div>
+    <div class="card">
+      <div class="profile-row">
+        <div class="avatar solid" id="meAvatar" style="background:#111">我</div>
+        <input id="meName" placeholder="设置你的昵称" maxlength="12">
+      </div>
+    </div>
+
+    <!-- 主题 -->
+    <div class="section-label">主题</div>
+    <div class="card">
+      <div class="theme-row" id="themeRow">
+        <button class="theme-opt on" data-theme="light"><span class="swatch" style="background:#f2f2f7"></span>默认</button>
+        <button class="theme-opt" data-theme="sakura"><span class="swatch" style="background:#f9c6d9"></span>樱粉</button>
+        <button class="theme-opt" data-theme="violet"><span class="swatch" style="background:#c4b5fd"></span>暮紫</button>
+        <button class="theme-opt" data-theme="dark"><span class="swatch" style="background:#2c2c2e"></span>夜黑</button>
+      </div>
+    </div>
+
+    <!-- 功能兑换 · VIP 兑换 -->
+    <div class="card gap-top">
+      <div class="card-row tappable" id="btnRecharge"><span class="k">功能兑换</span><span class="v" id="vipStatus">未开通</span><span class="go">›</span></div>
+    </div>
+
+    <div class="card gap-top">
+      <div class="card-row"><span class="k">版本</span><span class="v">前端测试版 v0.1</span></div>
+      <div class="card-row"><span class="k">联系人</span><span class="v" id="settingsCount">0 位</span></div>
+      <div class="card-row tappable" id="btnClear"><span class="k">清空本地数据</span><span class="go">›</span></div>
+      <div class="card-row tappable" id="btnLogout"><span class="k">退出登录</span><span class="go">›</span></div>
+    </div>
+  </section>
+
+  <!-- ④ 添加联系人（从通讯录进入） -->
+  <section class="screen" id="screenAdd">
+    <header class="nav">
+      <div class="nav-side"><button class="link-btn" id="btnAddCancel">‹ 通讯录</button></div>
+      <div class="nav-title">添加联系人</div>
+      <div class="nav-side"><button class="link-btn" id="btnAddSave">存储</button></div>
+    </header>
+    <div class="add-hero">
+      <div class="photo-pick" id="addPhotoPick">
+        <span class="plus">＋</span>
+        <span id="addPhotoPh">添加照片</span>
+        <img class="hidden" id="addPhotoPreview" alt="">
+      </div>
+      <p class="hint">照片可选，也可以以后再添加</p>
+    </div>
+    <div class="card">
+      <div class="card-row"><span class="k">姓名</span>
+        <input class="row-input" id="addName" placeholder="必填" maxlength="12">
+      </div>
+    </div>
+    <div class="hint">保存后需要填写「关于他」才能解锁</div>
+    <input type="file" id="photoInput" accept="image/*" hidden>
+  </section>
+
+  <!-- ⑤ 关于他 · 联系人卡片（点进去设置） -->
+  <section class="screen tabbed" id="screenAboutList">
+    <header class="nav">
+      <div class="nav-side"></div>
+      <div class="nav-title">关于他</div>
+      <div class="nav-side"></div>
+    </header>
+    <div class="section-label">选一个人，设置「关于他」</div>
+    <div class="him-grid" id="aboutList"></div>
+    <div class="hint" id="aboutListHint">还没有联系人<br>先去「通讯录」添加 TA</div>
+  </section>
+
+  <!-- ⑤b 关于他（单独页面，设置后解锁） -->
+  <section class="screen" id="screenAbout">
+    <header class="nav">
+      <div class="nav-side"><button class="link-btn" id="btnAboutBack">‹ 返回</button></div>
+      <div class="nav-title">关于他</div>
+      <div class="nav-side"><button class="link-btn" id="btnPersonaSave">保存</button></div>
+    </header>
+
+    <div class="hint hidden" id="aboutEmpty">还没有联系人<br>先去「通讯录」添加 TA</div>
+
+    <div id="aboutForm">
+      <!-- 头像 -->
+      <div class="avatar-zone">
+        <div class="avatar-wrap" id="aboutAvatarWrap"></div>
+      </div>
+
+      <!-- 名字 -->
+      <div class="name-zone"><input class="name-input" id="aboutName" placeholder="TA 的名字" maxlength="12"></div>
+
+      <!-- 关于他 -->
+      <div class="section-label">关于他</div>
+      <textarea class="persona-text" id="personaText"
+        placeholder="TA 是一个怎样的人？性格、说话风格、和你的关系、口头禅……写得越具体，TA 越像真的。"></textarea>
+
+      <!-- 形象（通话背景） -->
+      <div class="section-label">形象 · 通话背景</div>
+      <div class="image-pick empty" id="imagePick">
+        <div class="image-ph" id="imagePh"><span class="plus">＋</span><span>上传形象图</span></div>
+        <img class="hidden" id="imagePreview" alt="">
+      </div>
+      <div class="hint">通话时这张图会铺满屏幕</div>
+    </div>
+    <input type="file" id="photoInputEdit" accept="image/*" hidden>
+    <input type="file" id="imageInput" accept="image/*" hidden>
+  </section>
+
+  <!-- ⑥ 联系人详情（从通讯录点进去） -->
+  <section class="screen" id="screenContact">
+    <header class="nav">
+      <div class="nav-side"><button class="link-btn" id="btnBack">‹ 通讯录</button></div>
+      <div class="nav-title"></div>
+      <div class="nav-side"><button class="link-btn" id="btnEdit">编辑</button></div>
+    </header>
+    <div class="contact-hero">
+      <div class="avatar-wrap" id="detailAvatarWrap" title="点击更换照片"></div>
+      <h1 id="detailName">柏源</h1>
+      <p class="sub">手机</p>
+    </div>
+    <div class="action-grid">
+      <button class="action" id="btnMessage"><span class="a-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5C4 7.9 7.6 5 12 5s8 2.9 8 6.5-3.6 6.5-8 6.5c-.7 0-1.4-.1-2-.2L5 20l1.2-2.7C4.8 16 4 13.9 4 11.5z"/></svg></span><span>信息</span></button>
+      <button class="action" id="btnCall"><span class="a-ico green"><svg viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 13l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></svg></span><span>打电话</span></button>
+      <button class="action" disabled><span class="a-ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="M15 10.5 20 8v8l-5-2.5z"/></svg></span><span>视频</span></button>
+    </div>
+    <div class="card">
+      <div class="card-row tappable" id="personaRow">
+        <span class="k">关于他</span>
+        <span class="v" id="detailPersona"></span>
+        <span class="go">›</span>
+      </div>
+    </div>
+    <div class="card gap-top">
+      <div class="card-row del-row tappable" id="btnDeleteContact">删除联系人</div>
+    </div>
+    <input type="file" id="photoInputEdit2" accept="image/*" hidden>
+  </section>
+
+  <!-- ⑥b 功能兑换 · VIP 兑换 -->
+  <section class="screen" id="screenVip">
+    <header class="nav">
+      <div class="nav-side"><button class="link-btn" id="btnVipBack">‹ 设置</button></div>
+      <div class="nav-title">VIP 兑换</div>
+      <div class="nav-side"></div>
+    </header>
+
+    <div class="vip-hero" id="vipHero">
+      <div class="vip-badge">VIP</div>
+      <div class="vip-state" id="vipState">未开通 VIP</div>
+      <div class="vip-sub" id="vipSub">输入兑换码，开启完整体验</div>
+    </div>
+
+    <div class="section-label">兑换码</div>
+    <div class="card">
+      <div class="card-row"><input class="row-input" id="vipCode" placeholder="请输入兑换码" maxlength="24" autocomplete="off"></div>
+    </div>
+    <button class="btn-primary" id="btnRedeem">兑换</button>
+
+    <div class="section-label">VIP 权益</div>
+    <div class="card">
+      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>永久记忆包 · 你的喜好他都记得</div>
+      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>技能学习 · 陪你共同进步</div>
+      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>主动来电 · 他也会想你想到打电话</div>
+    </div>
+  </section>
+
+  <!-- ⑦ 通话中（与「打电话」前端一致） -->
+  <section class="screen call" id="screenCall">
+    <div class="call-bg" id="callBg"></div>
+    <div class="call-shade"></div>
+
+    <div class="call-top">
+      <div class="call-name" id="callName">柏源</div>
+      <div class="call-timer" id="callTimer">正在呼叫…</div>
+    </div>
+
+    <!-- 字幕区（可开关） -->
+    <div class="call-mid">
+      <div class="subtitle hidden" id="subtitleBox">
+        <p class="sub-label" id="subtitleLabel">柏源</p>
+        <p class="sub-text" id="subtitleText"></p>
+      </div>
+      <div class="thinking hidden" id="thinking">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="err hidden" id="errBox"></div>
+    </div>
+
+    <div class="call-bottom">
+      <!-- 用户输入 -->
+      <div class="input-row">
+        <input id="msgInput" type="text" placeholder="输入要说的话…" autocomplete="off" maxlength="200">
+        <button id="btnSend" class="send-btn">发送</button>
+      </div>
+
+      <!-- 功能行：静音 / 字幕 / 录音 -->
+      <div class="call-tools">
+        <button class="tool" id="btnMute"><span class="t-ico"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></span><span class="t-label">静音</span></button>
+        <button class="tool" id="btnSubtitle"><span class="t-ico"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 12h4M14 12h3"/></svg></span><span class="t-label">字幕 关</span></button>
+        <button class="tool" id="btnRecord"><span class="t-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg></span><span class="t-label">录音</span></button>
+      </div>
+
+      <!-- 挂断 -->
+      <button class="hangup" id="btnHangup" aria-label="挂断">
+        <svg viewBox="0 0 32 32" width="30" height="30"><path fill="#fff" d="M16 8.5c-4.2 0-8.1 1.5-11.1 4.1-.5.4-.7 1.1-.4 1.7l1.7 3.1c.3.6 1 .8 1.6.6l4.1-1.4c.5-.2.9-.7.9-1.3v-2.3c2-.6 4.2-.6 6.2 0v2.3c0 .6.3 1.1.9 1.3l4.1 1.4c.6.2 1.3 0 1.6-.6l1.7-3.1c.3-.6.1-1.3-.4-1.7C24.1 10 20.2 8.5 16 8.5z"/></svg>
+      </button>
+      <div class="home-indicator"></div>
+    </div>
+  </section>
+
+  <!-- 底部导航：聊天 / 通讯录 / 关于他 / 设置 -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab-item active" data-screen="screenChatList">
+      <span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5C4 7.9 7.6 5 12 5s8 2.9 8 6.5-3.6 6.5-8 6.5c-.7 0-1.4-.1-2-.2L5 20l1.2-2.7C4.8 16 4 13.9 4 11.5z"/></svg></span>
+      <span>聊天</span>
+    </button>
+    <button class="tab-item" data-screen="screenContacts">
+      <span class="tab-ico"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="10" r="2.4"/><path d="M8.5 16.2c.7-1.5 2-2.3 3.5-2.3s2.8.8 3.5 2.3"/></svg></span>
+      <span>通讯录</span>
+    </button>
+    <button class="tab-item" data-screen="screenAboutList">
+      <span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.2C5 8 6.8 6.5 9 6.5c1.4 0 2.5.7 3 1.5.5-.8 1.6-1.5 3-1.5 2.2 0 4 1.5 4 4.3 0 4.9-7 9.2-7 9.2z"/></svg></span>
+      <span>关于他</span>
+    </button>
+    <button class="tab-item" data-screen="screenSettings">
+      <span class="tab-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M18 6l-1.6 1.6M7.6 16.4L6 18"/></svg></span>
+      <span>设置</span>
+    </button>
+  </nav>
+
+  <!-- 聊天页右上角 ＋ 的下拉菜单 -->
+  <div class="pm-mask hidden" id="pmMask"></div>
+  <div class="plus-menu hidden" id="plusMenu">
+    <button class="pm-item" id="pmGroup"><span class="pm-ico">🗨️</span>发起群聊</button>
+    <button class="pm-item" id="pmAdd"><span class="pm-ico">➕</span>添加好友</button>
+  </div>
+  <div class="toast hidden" id="toast"></div>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
