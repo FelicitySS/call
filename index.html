@@ -180,9 +180,34 @@
         <img class="hidden" id="imagePreview" alt="">
       </div>
       <div class="hint">通话时这张图会铺满屏幕</div>
+
+      <!-- 音色（上传 / 录制 TA 的声音） -->
+      <div class="section-label">音色</div>
+      <div class="voice-box">
+        <div class="voice-bar hidden" id="voiceBar">
+          <button class="voice-play" id="btnVoicePlay"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+          <div class="voice-info">
+            <div class="voice-title">TA 的音色</div>
+            <div class="voice-len" id="voiceLen"></div>
+          </div>
+          <button class="voice-mini danger" id="btnVoiceDel">删除</button>
+        </div>
+        <div class="voice-rec hidden" id="voiceRec">
+          <span class="rec-dot"></span>
+          <span class="rec-time" id="voiceRecTime">00:00</span>
+          <span class="rec-tip">录音中…</span>
+          <button class="voice-mini" id="btnVoiceStop">停止</button>
+        </div>
+        <div class="voice-acts" id="voiceActs">
+          <button class="voice-act" id="btnVoiceUpload">上传音频</button>
+          <button class="voice-act" id="btnVoiceRecord">录制声音</button>
+        </div>
+      </div>
+      <div class="hint">录一段 TA 的声音，之后可以用这个音色生成语音</div>
     </div>
     <input type="file" id="photoInputEdit" accept="image/*" hidden>
     <input type="file" id="imageInput" accept="image/*" hidden>
+    <input type="file" id="voiceInput" accept="audio/*" hidden>
   </section>
 
   <!-- ⑥ 联系人详情（从通讯录点进去） -->
@@ -317,5 +342,14 @@
 
 </div>
 <script src="app.js"></script>
+<script>
+// 固定 390×844（iPhone 13 Pro），窗口放不下时整体等比缩放
+const fitPhone = () => {
+  const s = Math.min(1, (innerWidth - 24) / 390, (innerHeight - 24) / 844);
+  document.getElementById('phone').style.setProperty('--scale', s.toFixed(4));
+};
+fitPhone();
+addEventListener('resize', fitPhone);
+</script>
 </body>
 </html>

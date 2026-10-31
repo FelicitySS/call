@@ -394,6 +394,7 @@ function renderAbout() {
     $('imagePh').classList.remove('hidden');
     $('imagePick').classList.add('empty');
   }
+  renderVoice();
 }
 
 $('btnPersonaSave').addEventListener('click', () => {
@@ -437,6 +438,122 @@ $('imageInput').addEventListener('change', e => {
     save();
     renderAbout();
   });
+});
+
+// ===== 音色：上传 / 录制 TA 的声音 =====
+const PLAY_ICON = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>';
+const PAUSE_ICON = '<svg viewBox="0 0 24 24"><path d="M8 5h3v14H8zM14 5h3v14h-3z"/></svg>';
+let voiceAudio = null;    // 试听中的音频
+let recTimerId = null, recSecs = 0, mediaRec = null, recStream = null;
+
+function renderVoice() {
+  const c = state.current;
+  const has = !!(c && c.voice);
+  $('voiceBar').classList.toggle('hidden', !has);
+  if (has) $('voiceLen').textContent = '时长 ' + fmtDuration(c.voiceDur || 0);
+  stopVoicePreview();
+}
+
+function stopVoicePreview() {
+  if (voiceAudio) { voiceAudio.pause(); voiceAudio = null; }
+  $('btnVoicePlay').innerHTML = PLAY_ICON;
+}
+
+function saveVoice(dataURL, dur) {
+  const c = state.current;
+  if (!c) return;
+  c.voice = dataURL;
+  c.voiceDur = dur;
+  save();
+  renderVoice();
+  showToast('音色已保存');
+}
+
+// 试听 / 暂停
+$('btnVoicePlay').addEventListener('click', () => {
+  const c = state.current;
+  if (!c || !c.voice) return;
+  if (voiceAudio) { stopVoicePreview(); return; }
+  voiceAudio = new Audio(c.voice);
+  $('btnVoicePlay').innerHTML = PAUSE_ICON;
+  voiceAudio.onended = stopVoicePreview;
+  voiceAudio.play().catch(stopVoicePreview);
+});
+
+// 上传音频
+$('btnVoiceUpload').addEventListener('click', () => $('voiceInput').click());
+$('voiceInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file || !state.current) return;
+  if (file.size > 2 * 1024 * 1024) {   // 存 localStorage，太大的音频装不下
+    showToast('音频太大，请控制在 2MB 以内');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    // 顺便取一下时长
+    const a = new Audio(reader.result);
+    a.onloadedmetadata = () => saveVoice(reader.result, Math.round(a.duration) || 0);
+    a.onerror = () => saveVoice(reader.result, 0);
+  };
+  reader.readAsDataURL(file);
+});
+
+// 录制声音（最长 60 秒）
+$('btnVoiceRecord').addEventListener('click', async () => {
+  if (!state.current || mediaRec) return;
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    showToast('当前环境不支持录音，试试上传音频');
+    return;
+  }
+  try {
+    recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    showToast('无法访问麦克风，试试上传音频');
+    return;
+  }
+  recSecs = 0;
+  $('voiceRecTime').textContent = '00:00';
+  $('voiceRec').classList.remove('hidden');
+  $('voiceActs').classList.add('hidden');
+  const chunks = [];
+  mediaRec = new MediaRecorder(recStream);
+  mediaRec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  mediaRec.onstop = () => {
+    recStream.getTracks().forEach(t => t.stop());
+    recStream = null;
+    mediaRec = null;
+    clearInterval(recTimerId);
+    $('voiceRec').classList.add('hidden');
+    $('voiceActs').classList.remove('hidden');
+    const blob = new Blob(chunks, { type: 'audio/webm' });
+    const reader = new FileReader();
+    reader.onload = () => saveVoice(reader.result, recSecs);
+    reader.readAsDataURL(blob);
+  };
+  mediaRec.start();
+  recTimerId = setInterval(() => {
+    recSecs++;
+    $('voiceRecTime').textContent = fmtDuration(recSecs);
+    if (recSecs >= 60) stopVoiceRecord();   // 到 60 秒自动停
+  }, 1000);
+});
+
+function stopVoiceRecord() {
+  if (mediaRec && mediaRec.state !== 'inactive') mediaRec.stop();
+}
+$('btnVoiceStop').addEventListener('click', stopVoiceRecord);
+
+// 删除音色
+$('btnVoiceDel').addEventListener('click', () => {
+  const c = state.current;
+  if (!c || !c.voice) return;
+  if (!confirm('删除 TA 的音色？')) return;
+  c.voice = null;
+  c.voiceDur = 0;
+  save();
+  renderVoice();
 });
 
 // ===== ⑤ 联系人详情 =====
