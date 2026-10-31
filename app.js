@@ -383,18 +383,32 @@ function renderAbout() {
     + '<span class="cam-badge"><svg viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7H8l1.2-2h5.6L16 7h2.5A1.5 1.5 0 0 1 20 8.5v8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.5" r="3"/></svg></span>';
   $('aboutName').value = c.name;
   $('personaText').value = c.persona || '';
-  const img = $('imagePreview');
-  if (c.image) {
-    img.src = c.image;
-    img.classList.remove('hidden');
-    $('imagePh').classList.add('hidden');
-    $('imagePick').classList.remove('empty');
-  } else {
-    img.classList.add('hidden');
-    $('imagePh').classList.remove('hidden');
-    $('imagePick').classList.add('empty');
-  }
+  renderPersonaCount();
+  renderImageSlots();
   renderVoice();
+}
+
+// 形象图：最多 3 张竖图（旧数据 c.image 迁移到 c.images）
+function imagesOf(c) {
+  if (!c) return [];
+  if (Array.isArray(c.images)) return c.images.slice(0, 3);
+  return c.image ? [c.image] : [];
+}
+
+function renderImageSlots() {
+  const imgs = imagesOf(state.current);
+  $('imageRow').innerHTML = [0, 1, 2].map(i => {
+    const src = imgs[i];
+    return `<div class="image-slot${src ? '' : ' empty'}" data-idx="${i}">
+      ${src ? '' : '<span class="plus">＋</span>'}
+      ${src ? `<img src="${src}" alt="">` : ''}
+      ${src ? '<button class="slot-del" type="button" aria-label="删除">✕</button>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderPersonaCount() {
+  $('personaCount').textContent = ($('personaText').value || '').length;
 }
 
 $('btnPersonaSave').addEventListener('click', () => {
@@ -427,18 +441,40 @@ $('btnAboutBack').addEventListener('click', () => {
 // 关于他页点头像也能换照片
 $('aboutAvatarWrap').addEventListener('click', () => $('photoInputEdit').click());
 
-// 形象图：通话中铺满屏幕的背景
-$('imagePick').addEventListener('click', () => $('imageInput').click());
+// 形象图：通话中铺满屏幕的背景（3 个竖图槽位，空槽「＋」上传，上传后变图）
+let imageSlotIdx = 0;
+$('imageRow').addEventListener('click', e => {
+  const slot = e.target.closest('.image-slot');
+  if (!slot || !state.current) return;
+  const idx = +slot.dataset.idx;
+  if (e.target.closest('.slot-del')) {
+    const imgs = imagesOf(state.current);
+    while (imgs.length < 3) imgs.push(null);
+    imgs[idx] = null;
+    state.current.images = imgs;
+    delete state.current.image;
+    save();
+    renderImageSlots();
+    return;
+  }
+  imageSlotIdx = idx;
+  $('imageInput').click();
+});
 $('imageInput').addEventListener('change', e => {
   const file = e.target.files[0];
   e.target.value = '';
   if (!file || !state.current) return;
   compressImage(file, dataURL => {
-    state.current.image = dataURL;
+    const imgs = imagesOf(state.current);
+    while (imgs.length < 3) imgs.push(null);
+    imgs[imageSlotIdx] = dataURL;
+    state.current.images = imgs;
+    delete state.current.image;
     save();
-    renderAbout();
+    renderImageSlots();
   });
 });
+$('personaText').addEventListener('input', renderPersonaCount);
 
 // ===== 音色：上传 / 录制 TA 的声音 =====
 const PLAY_ICON = '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>';
@@ -632,10 +668,16 @@ $('btnClear').addEventListener('click', () => {
   $('settingsCount').textContent = '0 位';
 });
 
-// ===== ⑥b 功能兑换 · VIP 兑换（前端演示，兑换码任意即可兑换成功） =====
+// ===== ⑥b 功能兑换 · 免费卡 / VIP 卡（前端演示，兑换码任意即可兑换成功） =====
 function renderVip() {
+  const freeOn = !!localStorage.getItem('qjt_free');
   const day = localStorage.getItem('qjt_vip');
-  $('vipStatus').textContent = day ? 'VIP 已开通' : '未开通';
+  $('vipStatus').textContent = day ? 'VIP已开通' : '免费版';
+  // 免费卡
+  $('freeCard').classList.toggle('on', freeOn);
+  $('freeState').textContent = freeOn ? '免费版 · 已开通' : '未开通';
+  $('freeSub').textContent = freeOn ? '基础功能免费畅用' : '输入兑换码，开通免费版';
+  // VIP 卡
   if (day) {
     $('vipHero').classList.add('on');
     $('vipState').textContent = 'VIP · 已开通';
@@ -646,22 +688,31 @@ function renderVip() {
     $('vipSub').textContent = '输入兑换码，开启完整体验';
   }
 }
+function shakeCode(input) {
+  const card = input.closest('.plan-card');
+  card.classList.remove('shake');
+  void card.offsetWidth;
+  card.classList.add('shake');
+  input.focus();
+}
 $('btnRecharge').addEventListener('click', () => {
+  $('freeCode').value = '';
   $('vipCode').value = '';
   renderVip();
   show('screenVip');
 });
 $('btnVipBack').addEventListener('click', () => show('screenSettings'));
+$('btnFreeRedeem').addEventListener('click', () => {
+  const code = $('freeCode').value.trim();
+  if (!code) return shakeCode($('freeCode'));
+  localStorage.setItem('qjt_free', '1');
+  $('freeCode').value = '';
+  renderVip();
+  showToast('兑换成功，免费版已开通');
+});
 $('btnRedeem').addEventListener('click', () => {
   const code = $('vipCode').value.trim();
-  if (!code) {
-    const card = $('vipCode').closest('.card');
-    card.classList.remove('shake');
-    void card.offsetWidth;
-    card.classList.add('shake');
-    $('vipCode').focus();
-    return;
-  }
+  if (!code) return shakeCode($('vipCode'));
   // 有效期一年，存截止日期
   const d = new Date();
   d.setFullYear(d.getFullYear() + 1);
@@ -704,8 +755,9 @@ function resetCallUI() {
 function startCall() {
   const c = state.current;
   resetCallUI();
-  // 形象图 > 照片 > 纯色，铺满屏幕
-  const bgImg = c.image || c.photo;
+  // 形象图（多张随机）> 照片 > 纯色，铺满屏幕
+  const imgs = imagesOf(c).filter(Boolean);
+  const bgImg = imgs.length ? imgs[Math.floor(Math.random() * imgs.length)] : c.photo;
   const bg = $('callBg');
   if (bgImg) {
     bg.style.background = '';

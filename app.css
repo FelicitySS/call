@@ -390,12 +390,13 @@ body { display: flex; align-items: center; justify-content: center; }
 }
 .name-input::placeholder { color: var(--label2); font-weight: 400; letter-spacing: 0; }
 
-/* 关于他 · 文字描述区 */
+/* 关于他 · 文字描述区（加宽居中，两侧对称）
+   注意：textarea 的 width:auto 是「默认列宽」不是撑满父级，必须写显式宽度 */
 .persona-text {
   display: block;
-  width: auto;
+  width: calc(100% - 24px);
   min-height: 200px;
-  margin: 2px 16px 0;
+  margin: 2px 12px 0;
   border: 0;
   outline: none;
   resize: none;
@@ -409,49 +410,71 @@ body { display: flex; align-items: center; justify-content: center; }
   scrollbar-width: none;
 }
 .persona-text::placeholder { color: var(--label2); }
+.persona-count {
+  text-align: center;
+  font-size: 12px;
+  color: var(--label2);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
 
-/* 形象图上传（通话背景） */
-.image-pick {
+/* 形象图上传（通话背景）：3 个竖向小图槽位 */
+.image-row {
+  display: flex;
+  gap: 10px;
   margin: 2px 16px 0;
-  height: 168px;
-  border-radius: 16px;
-  background: var(--fill);
-  overflow: hidden;
+}
+.image-slot {
   position: relative;
+  flex: 1;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
   cursor: pointer;
+  background: var(--fill);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.image-pick.empty {
+.image-slot.empty {
   background: transparent;
   border: 1px dashed var(--ios-line);
 }
-.image-pick:active { filter: brightness(.97); }
-.image-pick img {
+.image-slot:active { filter: brightness(.97); }
+.image-slot img {
   position: absolute;
   inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
 }
-.image-ph {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: var(--label2);
-  font-size: 12px;
-}
-.image-ph .plus {
-  width: 42px; height: 42px;
+.image-slot .plus {
+  width: 38px; height: 38px;
   border-radius: 50%;
   background: var(--fill2);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 300;
   line-height: 1;
+  color: var(--label2);
+}
+.slot-del {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 /* 音色（上传 / 录制 TA 的声音） */
@@ -656,6 +679,7 @@ body { display: flex; align-items: center; justify-content: center; }
   font-size: 19px;
 }
 .a-ico.green { background: var(--green); }
+.a-ico.orange { background: #ff9500; }
 .a-ico svg {
   width: 20px; height: 20px;
   fill: none;
@@ -694,6 +718,7 @@ body { display: flex; align-items: center; justify-content: center; }
 .card-row:last-child { border-bottom: 0; }
 .card-row .k { color: var(--label2); flex: 0 0 auto; }
 .card-row .v {
+  margin-left: auto;
   text-align: right;
   color: var(--text);
   overflow: hidden;
@@ -710,42 +735,59 @@ body { display: flex; align-items: center; justify-content: center; }
   color: var(--red);
 }
 
-/* ===== 充话费 · VIP 兑换 ===== */
-.vip-hero {
+/* ===== 功能兑换 · 免费卡 / VIP 卡 ===== */
+.plan-card {
   margin: 18px 16px 0;
   border-radius: 18px;
-  padding: 28px 20px;
+  padding: 26px 20px 20px;
   text-align: center;
   color: #fff;
-  background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 55%, #fff));
   transition: background .35s;
 }
-.vip-hero.on { background: linear-gradient(135deg, #f6c445, #e8a020); }
-.vip-badge {
-  font-size: 34px;
+.plan-card.free { background: linear-gradient(135deg, #9aa4b2, #b9c2ce); }
+.plan-card.free.on { background: linear-gradient(135deg, #6b7686, #8a95a5); }
+.plan-card.vip { background: linear-gradient(135deg, var(--blue), color-mix(in srgb, var(--blue) 55%, #fff)); }
+.plan-card.vip.on { background: linear-gradient(135deg, #f6c445, #e8a020); }
+.plan-badge {
+  font-size: 32px;
   font-weight: 700;
-  letter-spacing: 8px;
-  text-indent: 8px;
+  letter-spacing: 6px;
+  text-indent: 6px;
 }
-.vip-state { margin-top: 10px; font-size: 17px; font-weight: 600; }
-.vip-sub { margin-top: 5px; font-size: 12.5px; opacity: .85; }
-
-.btn-primary {
-  display: block;
-  width: calc(100% - 32px);
-  margin: 14px 16px 0;
-  height: 46px;
+.plan-state { margin-top: 10px; font-size: 17px; font-weight: 600; }
+.plan-sub { margin-top: 5px; font-size: 12.5px; opacity: .85; }
+.plan-code {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.plan-code input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
   border: 0;
-  border-radius: 14px;
-  background: var(--blue);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .22);
   color: #fff;
+  padding: 0 12px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 14px;
+  outline: none;
+}
+.plan-code input::placeholder { color: rgba(255, 255, 255, .7); }
+.plan-btn {
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  color: #333;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 2px;
   cursor: pointer;
 }
-.btn-primary:active { filter: brightness(.92); }
+.plan-btn:active { filter: brightness(.92); }
 
 .vip-row {
   display: flex;
@@ -1143,7 +1185,18 @@ body { display: flex; align-items: center; justify-content: center; }
   text-align: left;
 }
 .pm-item:active { background: rgba(255, 255, 255, .12); }
-.pm-ico { font-size: 17px; }
+.pm-ico {
+  display: inline-flex;
+  width: 18px; height: 18px;
+}
+.pm-ico svg {
+  width: 100%; height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 /* 轻提示 */
 .toast {

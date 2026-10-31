@@ -170,16 +170,14 @@
 
       <!-- 关于他 -->
       <div class="section-label">关于他</div>
-      <textarea class="persona-text" id="personaText"
+      <textarea class="persona-text" id="personaText" maxlength="1000"
         placeholder="TA 是一个怎样的人？性格、说话风格、和你的关系、口头禅……写得越具体，TA 越像真的。"></textarea>
+      <div class="persona-count"><span id="personaCount">0</span>/1000</div>
 
       <!-- 形象（通话背景） -->
       <div class="section-label">形象 · 通话背景</div>
-      <div class="image-pick empty" id="imagePick">
-        <div class="image-ph" id="imagePh"><span class="plus">＋</span><span>上传形象图</span></div>
-        <img class="hidden" id="imagePreview" alt="">
-      </div>
-      <div class="hint">通话时这张图会铺满屏幕</div>
+      <div class="image-row" id="imageRow"></div>
+      <div class="hint">竖图最佳 · 最多 3 张，通话时随机铺满屏幕</div>
 
       <!-- 音色（上传 / 录制 TA 的声音） -->
       <div class="section-label">音色</div>
@@ -225,7 +223,7 @@
     <div class="action-grid">
       <button class="action" id="btnMessage"><span class="a-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5C4 7.9 7.6 5 12 5s8 2.9 8 6.5-3.6 6.5-8 6.5c-.7 0-1.4-.1-2-.2L5 20l1.2-2.7C4.8 16 4 13.9 4 11.5z"/></svg></span><span>信息</span></button>
       <button class="action" id="btnCall"><span class="a-ico green"><svg viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 13l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></svg></span><span>打电话</span></button>
-      <button class="action" disabled><span class="a-ico"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="12" height="10" rx="2.5"/><path d="M15 10.5 20 8v8l-5-2.5z"/></svg></span><span>视频</span></button>
+      <button class="action" disabled><span class="a-ico orange"><svg viewBox="0 0 24 24"><path d="M12 6.5C10.5 5.2 8.4 4.5 6 4.5H4v13h2c2.4 0 4.5.7 6 2 1.5-1.3 3.6-2 6-2h2v-13h-2c-2.4 0-4.5.7-6 2z"/><path d="M12 6.5v13"/></svg></span><span>背单词</span></button>
     </div>
     <div class="card">
       <div class="card-row tappable" id="personaRow">
@@ -240,25 +238,33 @@
     <input type="file" id="photoInputEdit2" accept="image/*" hidden>
   </section>
 
-  <!-- ⑥b 功能兑换 · VIP 兑换 -->
+  <!-- ⑥b 功能兑换 · 免费卡 / VIP 卡 -->
   <section class="screen" id="screenVip">
     <header class="nav">
       <div class="nav-side"><button class="link-btn" id="btnVipBack">‹ 设置</button></div>
-      <div class="nav-title">VIP 兑换</div>
+      <div class="nav-title">功能兑换</div>
       <div class="nav-side"></div>
     </header>
 
-    <div class="vip-hero" id="vipHero">
-      <div class="vip-badge">VIP</div>
-      <div class="vip-state" id="vipState">未开通 VIP</div>
-      <div class="vip-sub" id="vipSub">输入兑换码，开启完整体验</div>
+    <div class="plan-card free" id="freeCard">
+      <div class="plan-badge">免费卡</div>
+      <div class="plan-state" id="freeState">未开通</div>
+      <div class="plan-sub" id="freeSub">输入兑换码，开通免费版</div>
+      <div class="plan-code">
+        <input id="freeCode" placeholder="免费卡兑换码" maxlength="24" autocomplete="off">
+        <button class="plan-btn" id="btnFreeRedeem">兑换</button>
+      </div>
     </div>
 
-    <div class="section-label">兑换码</div>
-    <div class="card">
-      <div class="card-row"><input class="row-input" id="vipCode" placeholder="请输入兑换码" maxlength="24" autocomplete="off"></div>
+    <div class="plan-card vip" id="vipHero">
+      <div class="plan-badge">VIP</div>
+      <div class="plan-state" id="vipState">未开通 VIP</div>
+      <div class="plan-sub" id="vipSub">输入兑换码，开启完整体验</div>
+      <div class="plan-code">
+        <input id="vipCode" placeholder="VIP 兑换码" maxlength="24" autocomplete="off">
+        <button class="plan-btn" id="btnRedeem">兑换</button>
+      </div>
     </div>
-    <button class="btn-primary" id="btnRedeem">兑换</button>
 
     <div class="section-label">VIP 权益</div>
     <div class="card">
@@ -335,8 +341,8 @@
   <!-- 聊天页右上角 ＋ 的下拉菜单 -->
   <div class="pm-mask hidden" id="pmMask"></div>
   <div class="plus-menu hidden" id="plusMenu">
-    <button class="pm-item" id="pmGroup"><span class="pm-ico">🗨️</span>发起群聊</button>
-    <button class="pm-item" id="pmAdd"><span class="pm-ico">➕</span>添加好友</button>
+    <button class="pm-item" id="pmGroup"><span class="pm-ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="2.6"/><path d="M4.5 17c.6-2.4 2.4-3.6 4.5-3.6s3.9 1.2 4.5 3.6"/><circle cx="16.6" cy="8.6" r="2.1"/><path d="M15.2 13.2c2 .2 3.5 1.3 4 3.3"/></svg></span>发起群聊</button>
+    <button class="pm-item" id="pmAdd"><span class="pm-ico"><svg viewBox="0 0 24 24"><circle cx="10" cy="8.5" r="3"/><path d="M4.5 18c.6-2.7 2.8-4.2 5.5-4.2 1 0 1.9.2 2.7.6"/><path d="M17.5 13.5v6M14.5 16.5h6"/></svg></span>添加好友</button>
   </div>
   <div class="toast hidden" id="toast"></div>
 
