@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>去见他 · 登录注册</title>
+<style>
+  /* 去见他 · 登录注册页（React 版）
+     全屏自适应：无手机壳，任意手机尺寸打开都铺满；
+     新拟态风：浅灰底 #e0e5ec，凹陷输入框、凸起按钮/圆标。 */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    min-height: 100%;
+    background: #e0e5ec;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+    color: #4d5974;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .auth-page {
+    min-height: 100vh;
+    min-height: 100dvh; /* 移动端地址栏收起/展开都算满屏 */
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 内容列：窄屏铺满、宽屏居中；上下留出安全区（刘海屏） */
+  .auth-wrap {
+    width: 100%;
+    max-width: 480px;
+    padding: calc(clamp(36px, 8vh, 64px) + env(safe-area-inset-top, 0px)) clamp(20px, 6vw, 40px) calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 图标 + 标题固定在上方，不随登录/注册切换移动 */
+  .auth-hero {
+    text-align: center;
+    margin-bottom: clamp(14px, 3vh, 22px);
+  }
+
+  /* Logo：凸起圆标 + 线稿爱心 */
+  .auth-logo {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #e0e5ec;
+    box-shadow: 7px 7px 14px rgba(163, 177, 198, .65), -7px -7px 14px rgba(255, 255, 255, .8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-title {
+    margin-top: 22px;
+    font-size: clamp(25px, 7.2vw, 30px);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-indent: 1px;
+    color: #4d5974;
+  }
+  .auth-sub {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #8fa0bd;
+  }
+
+  /* 输入框：凹陷 */
+  .auth-input {
+    width: 100%;
+    height: 54px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 50px;
+    background: #e0e5ec;
+    padding: 0 22px;
+    font-family: inherit;
+    font-size: 16px; /* 保持 16px，避免 iOS 聚焦自动放大 */
+    color: #4d5974;
+    outline: none;
+    box-shadow: inset 6px 6px 10px rgba(163, 177, 198, .7), inset -6px -6px 10px rgba(255, 255, 255, .8);
+    transition: box-shadow .2s ease-in-out;
+  }
+  .auth-input::placeholder { color: #9ba7b9; }
+  .auth-input:focus {
+    box-shadow: inset 8px 8px 12px rgba(163, 177, 198, .9), inset -8px -8px 12px rgba(255, 255, 255, 1);
+  }
+
+  /* 主按钮：凸起，按下变凹陷 */
+  .auth-btn {
+    display: block;
+    width: 100%;
+    height: 54px;
+    margin-top: 26px;
+    border: 0;
+    border-radius: 50px;
+    background: #e0e5ec;
+    color: #4d5974;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 6px 6px 10px rgba(163, 177, 198, .7), -6px -6px 10px rgba(255, 255, 255, .8);
+    transition: box-shadow .2s ease-in-out;
+  }
+  .auth-btn:active {
+    box-shadow: inset 4px 4px 6px rgba(163, 177, 198, .7), inset -4px -4px 6px rgba(255, 255, 255, .8);
+  }
+
+  .auth-switch {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #8fa0bd;
+  }
+  .auth-switch .link {
+    border: 0;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: #4d5974;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 50;
+    background: rgba(0, 0, 0, .78);
+    color: #fff;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 18px;
+    white-space: nowrap;
+    max-width: calc(100vw - 40px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  /* 矮屏（小手机 / 横屏）收紧间距，尽量一屏放下 */
+  @media (max-height: 680px) {
+    .auth-wrap { padding-top: calc(24px + env(safe-area-inset-top, 0px)); }
+    .auth-logo { width: 64px; height: 64px; }
+    .auth-title { margin-top: 14px; }
+    .auth-input { margin-top: 12px; height: 50px; }
+    .auth-btn { margin-top: 20px; height: 50px; }
+    .auth-switch { margin-top: 16px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+// 线稿爱心 Logo
+function Logo() {
+  return (
+    <div className="auth-logo">
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+        <path
+          fill="none"
+          stroke="#4d5974"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          d="M12 20s-7-4.3-7-9.2C5 8 6.8 6.5 9 6.5c1.4 0 2.5.7 3 1.5.5-.8 1.6-1.5 3-1.5 2.2 0 4 1.5 4 4.3 0 4.9-7 9.2-7 9.2z"
+        />
+      </svg>
+    </div>
+  );
+}
+
+function App() {
+  const [mode, setMode] = useState('login');              // 'login' | 'register'
+  const [form, setForm] = useState({ name: '', pwd: '', confirm: '', invite: '' });
+  const [toast, setToast] = useState('');
+
+  // Toast 1.8 秒后自动消失
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const onField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  // 登录 / 注册（纯前端演示，不连后端）
+  const submit = (e) => {
+    e.preventDefault();
+    const acc = form.name.trim();
+    if (!acc) return setToast(mode === 'login' ? '请填写账号' : '请填写手机号');
+    if (form.pwd.length < 6) return setToast('密码至少 6 位');
+    if (mode === 'register') {
+      if (form.pwd !== form.confirm) return setToast('两次输入的密码不一致');
+      setToast('注册成功（演示）');
+    } else {
+      setToast('登录成功（演示）');
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-wrap">
+        {/* 图标 + 标题固定在上方，不随登录/注册切换移动 */}
+        <div className="auth-hero">
+          <Logo />
+          <h1 className="auth-title">去见他</h1>
+          <p className="auth-sub">{mode === 'login' ? '欢迎回来' : '开启新体验'}</p>
+        </div>
+
+        <form onSubmit={submit}>
+          <input
+            className="auth-input"
+            placeholder={mode === 'login' ? '账号 / 手机号' : '手机号'}
+            maxLength={24}
+            autoComplete="off"
+            value={form.name}
+            onChange={onField('name')}
+          />
+          <input
+            className="auth-input"
+            type="password"
+            placeholder="密码（至少 6 位）"
+            maxLength={24}
+            value={form.pwd}
+            onChange={onField('pwd')}
+          />
+          {mode === 'register' && (
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="确认密码"
+              maxLength={24}
+              value={form.confirm}
+              onChange={onField('confirm')}
+            />
+          )}
+          {mode === 'register' && (
+            <input
+              className="auth-input"
+              placeholder="邀请码"
+              maxLength={24}
+              autoComplete="off"
+              value={form.invite}
+              onChange={onField('invite')}
+            />
+          )}
+
+          <button className="auth-btn" type="submit">
+            {mode === 'login' ? '登录' : '注册'}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          {mode === 'login' ? (
+            <span>
+              还没有账号？
+              <button type="button" className="link" onClick={() => setMode('register')}>去注册</button>
+            </span>
+          ) : (
+            <span>
+              已有账号？
+              <button type="button" className="link" onClick={() => setMode('login')}>返回登录</button>
+            </span>
+          )}
+        </div>
+      </div>
+
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
