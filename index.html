@@ -2,360 +2,287 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<title>去见他 · 前端测试版</title>
-<link rel="stylesheet" href="app.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>去见他 · 登录注册</title>
+<style>
+  /* 去见他 · 登录注册页（React 版）
+     全屏自适应：无手机壳，任意手机尺寸打开都铺满；
+     新拟态风：浅灰底 #e0e5ec，凹陷输入框、凸起按钮/圆标。 */
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    min-height: 100%;
+    background: #e0e5ec;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+    color: #4d5974;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .auth-page {
+    min-height: 100vh;
+    min-height: 100dvh; /* 移动端地址栏收起/展开都算满屏 */
+    display: flex;
+    justify-content: center;
+  }
+
+  /* 内容列：窄屏铺满、宽屏居中；上下留出安全区（刘海屏） */
+  .auth-wrap {
+    width: 100%;
+    max-width: 480px;
+    padding: calc(clamp(36px, 8vh, 64px) + env(safe-area-inset-top, 0px)) clamp(20px, 6vw, 40px) calc(28px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* 图标 + 标题固定在上方，不随登录/注册切换移动 */
+  .auth-hero {
+    text-align: center;
+    margin-bottom: clamp(14px, 3vh, 22px);
+  }
+
+  /* Logo：凸起圆标 + 线稿爱心 */
+  .auth-logo {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto;
+    border-radius: 50%;
+    background: #e0e5ec;
+    box-shadow: 7px 7px 14px rgba(163, 177, 198, .65), -7px -7px 14px rgba(255, 255, 255, .8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .auth-title {
+    margin-top: 22px;
+    font-size: clamp(25px, 7.2vw, 30px);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-indent: 1px;
+    color: #4d5974;
+  }
+  .auth-sub {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #8fa0bd;
+  }
+
+  /* 输入框：凹陷 */
+  .auth-input {
+    width: 100%;
+    height: 54px;
+    margin-top: 16px;
+    border: 0;
+    border-radius: 50px;
+    background: #e0e5ec;
+    padding: 0 22px;
+    font-family: inherit;
+    font-size: 16px; /* 保持 16px，避免 iOS 聚焦自动放大 */
+    color: #4d5974;
+    outline: none;
+    box-shadow: inset 6px 6px 10px rgba(163, 177, 198, .7), inset -6px -6px 10px rgba(255, 255, 255, .8);
+    transition: box-shadow .2s ease-in-out;
+  }
+  .auth-input::placeholder { color: #9ba7b9; }
+  .auth-input:focus {
+    box-shadow: inset 8px 8px 12px rgba(163, 177, 198, .9), inset -8px -8px 12px rgba(255, 255, 255, 1);
+  }
+
+  /* 主按钮：凸起，按下变凹陷 */
+  .auth-btn {
+    display: block;
+    width: 100%;
+    height: 54px;
+    margin-top: 26px;
+    border: 0;
+    border-radius: 50px;
+    background: #e0e5ec;
+    color: #4d5974;
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 6px 6px 10px rgba(163, 177, 198, .7), -6px -6px 10px rgba(255, 255, 255, .8);
+    transition: box-shadow .2s ease-in-out;
+  }
+  .auth-btn:active {
+    box-shadow: inset 4px 4px 6px rgba(163, 177, 198, .7), inset -4px -4px 6px rgba(255, 255, 255, .8);
+  }
+
+  .auth-switch {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    color: #8fa0bd;
+  }
+  .auth-switch .link {
+    border: 0;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: #4d5974;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 50;
+    background: rgba(0, 0, 0, .78);
+    color: #fff;
+    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 18px;
+    white-space: nowrap;
+    max-width: calc(100vw - 40px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  /* 矮屏（小手机 / 横屏）收紧间距，尽量一屏放下 */
+  @media (max-height: 680px) {
+    .auth-wrap { padding-top: calc(24px + env(safe-area-inset-top, 0px)); }
+    .auth-logo { width: 64px; height: 64px; }
+    .auth-title { margin-top: 14px; }
+    .auth-input { margin-top: 12px; height: 50px; }
+    .auth-btn { margin-top: 20px; height: 50px; }
+    .auth-switch { margin-top: 16px; }
+  }
+</style>
 </head>
 <body>
-<div class="phone" id="phone">
+<div id="root"></div>
 
-  <!-- 状态栏 -->
-  <div class="statusbar">
-    <span class="sb-time" id="sbTime">21:04</span>
-    <span class="sb-right">
-      <svg viewBox="0 0 26 12" width="25" height="11"><rect x="0.5" y="0.5" width="21" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="16" height="8" rx="1.5"/><path d="M23 4 v4 a2.2 2.2 0 0 0 0-4z" opacity=".45"/></svg>
-    </span>
-  </div>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.25.6/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
 
-  <!-- ① 聊天 · 会话列表（微信样式） -->
-  <section class="screen tabbed active" id="screenChatList">
-    <header class="nav">
-      <div class="nav-side"></div>
-      <div class="nav-title">聊天</div>
-      <div class="nav-side"><button class="link-btn" id="btnPlus">＋</button></div>
-    </header>
-    <div class="searchbar">
-      <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
-      <span>搜索</span>
+// 线稿爱心 Logo
+function Logo() {
+  return (
+    <div className="auth-logo">
+      <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+        <path
+          fill="none"
+          stroke="#4d5974"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          d="M12 20s-7-4.3-7-9.2C5 8 6.8 6.5 9 6.5c1.4 0 2.5.7 3 1.5.5-.8 1.6-1.5 3-1.5 2.2 0 4 1.5 4 4.3 0 4.9-7 9.2-7 9.2z"
+        />
+      </svg>
     </div>
-    <ul class="contact-list" id="chatList"></ul>
-    <div class="hint" id="chatListHint">还没有聊天记录<br>去「通讯录」找 TA 聊聊吧</div>
-  </section>
+  );
+}
 
-  <!-- ①b 聊天窗口（点会话进去） -->
-  <section class="screen chat" id="screenChatRoom">
-    <header class="nav chat-nav">
-      <div class="nav-side"><button class="link-btn" id="btnChatBack">‹ 聊天</button></div>
-      <div class="chat-peer">
-        <span id="chatPeerName">柏源</span>
-      </div>
-      <div class="nav-side"><button class="link-btn" id="btnChatCall"><svg class="ico" viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 13l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></svg></button></div>
-    </header>
+function App() {
+  const [mode, setMode] = useState('login');              // 'login' | 'register'
+  const [form, setForm] = useState({ name: '', pwd: '', confirm: '', invite: '' });
+  const [toast, setToast] = useState('');
 
-    <div class="chat-scroll" id="chatScroll">
-      <div class="chat-day">今天</div>
-      <div class="chat-no hidden" id="chatNoMsg">你和 TA 的对话从这里开始</div>
-    </div>
+  // Toast 1.8 秒后自动消失
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(''), 1800);
+    return () => clearTimeout(t);
+  }, [toast]);
 
-    <div class="chat-input-row">
-      <input id="chatInput" type="text" placeholder="信息" autocomplete="off" maxlength="500">
-      <button id="chatSend" class="chat-send" disabled>
-        <svg viewBox="0 0 24 24" width="22" height="22"><path fill="#fff" d="M12 4l7 7-1.5 1.5L13 8.5V20h-2V8.5l-4.5 4L5 11z"/></svg>
-      </button>
-    </div>
-    <div class="home-indicator dark"></div>
-  </section>
+  const onField = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  <!-- ② 通讯录 -->
-  <section class="screen tabbed" id="screenContacts">
-    <header class="nav">
-      <div class="nav-side"></div>
-      <div class="nav-title">通讯录</div>
-      <div class="nav-side"><button class="link-btn" id="btnAdd">＋ 添加</button></div>
-    </header>
-    <div class="searchbar">
-      <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M15.8 15.8 20 20"/></svg>
-      <span>搜索</span>
-    </div>
-    <ul class="contact-list" id="contactList"></ul>
-    <div class="hint" id="listHint">还没有联系人，点右上角「＋ 添加」<br>添加后填写「关于他」即可解锁</div>
-    <div class="hint hidden" id="listCount"></div>
-  </section>
+  // 登录 / 注册（纯前端演示，不连后端）
+  const submit = (e) => {
+    e.preventDefault();
+    const acc = form.name.trim();
+    if (!acc) return setToast(mode === 'login' ? '请填写账号' : '请填写手机号');
+    if (form.pwd.length < 6) return setToast('密码至少 6 位');
+    if (mode === 'register') {
+      if (form.pwd !== form.confirm) return setToast('两次输入的密码不一致');
+      setToast('注册成功（演示）');
+    } else {
+      setToast('登录成功（演示）');
+    }
+  };
 
-  <!-- ③ 设置 -->
-  <section class="screen tabbed" id="screenSettings">
-    <header class="nav">
-      <div class="nav-side"></div>
-      <div class="nav-title">设置</div>
-      <div class="nav-side"></div>
-    </header>
-
-    <!-- 关于我 -->
-    <div class="section-label">关于我</div>
-    <div class="card">
-      <div class="profile-row">
-        <div class="avatar solid" id="meAvatar" style="background:#111">我</div>
-        <input id="meName" placeholder="设置你的昵称" maxlength="12">
-      </div>
-    </div>
-
-    <!-- 主题 -->
-    <div class="section-label">主题</div>
-    <div class="card">
-      <div class="theme-row" id="themeRow">
-        <button class="theme-opt on" data-theme="light"><span class="swatch" style="background:#f2f2f7"></span>默认</button>
-        <button class="theme-opt" data-theme="sakura"><span class="swatch" style="background:#f9c6d9"></span>樱粉</button>
-        <button class="theme-opt" data-theme="violet"><span class="swatch" style="background:#c4b5fd"></span>暮紫</button>
-        <button class="theme-opt" data-theme="dark"><span class="swatch" style="background:#2c2c2e"></span>夜黑</button>
-      </div>
-    </div>
-
-    <!-- 功能兑换 · VIP 兑换 -->
-    <div class="card gap-top">
-      <div class="card-row tappable" id="btnRecharge"><span class="k">功能兑换</span><span class="v" id="vipStatus">未开通</span><span class="go">›</span></div>
-    </div>
-
-    <div class="card gap-top">
-      <div class="card-row"><span class="k">版本</span><span class="v">前端测试版 v0.1</span></div>
-      <div class="card-row"><span class="k">联系人</span><span class="v" id="settingsCount">0 位</span></div>
-      <div class="card-row tappable" id="btnClear"><span class="k">清空本地数据</span><span class="go">›</span></div>
-      <div class="card-row tappable" id="btnLogout"><span class="k">退出登录</span><span class="go">›</span></div>
-    </div>
-  </section>
-
-  <!-- ④ 添加联系人（从通讯录进入） -->
-  <section class="screen" id="screenAdd">
-    <header class="nav">
-      <div class="nav-side"><button class="link-btn" id="btnAddCancel">‹ 通讯录</button></div>
-      <div class="nav-title">添加联系人</div>
-      <div class="nav-side"><button class="link-btn" id="btnAddSave">存储</button></div>
-    </header>
-    <div class="add-hero">
-      <div class="photo-pick" id="addPhotoPick">
-        <span class="plus">＋</span>
-        <span id="addPhotoPh">添加照片</span>
-        <img class="hidden" id="addPhotoPreview" alt="">
-      </div>
-      <p class="hint">照片可选，也可以以后再添加</p>
-    </div>
-    <div class="card">
-      <div class="card-row"><span class="k">姓名</span>
-        <input class="row-input" id="addName" placeholder="必填" maxlength="12">
-      </div>
-    </div>
-    <div class="hint">保存后需要填写「关于他」才能解锁</div>
-    <input type="file" id="photoInput" accept="image/*" hidden>
-  </section>
-
-  <!-- ⑤ 关于他 · 联系人卡片（点进去设置） -->
-  <section class="screen tabbed" id="screenAboutList">
-    <header class="nav">
-      <div class="nav-side"></div>
-      <div class="nav-title">关于他</div>
-      <div class="nav-side"></div>
-    </header>
-    <div class="section-label">选一个人，设置「关于他」</div>
-    <div class="him-grid" id="aboutList"></div>
-    <div class="hint" id="aboutListHint">还没有联系人<br>先去「通讯录」添加 TA</div>
-  </section>
-
-  <!-- ⑤b 关于他（单独页面，设置后解锁） -->
-  <section class="screen" id="screenAbout">
-    <header class="nav">
-      <div class="nav-side"><button class="link-btn" id="btnAboutBack">‹ 返回</button></div>
-      <div class="nav-title">关于他</div>
-      <div class="nav-side"><button class="link-btn" id="btnPersonaSave">保存</button></div>
-    </header>
-
-    <div class="hint hidden" id="aboutEmpty">还没有联系人<br>先去「通讯录」添加 TA</div>
-
-    <div id="aboutForm">
-      <!-- 头像 -->
-      <div class="avatar-zone">
-        <div class="avatar-wrap" id="aboutAvatarWrap"></div>
-      </div>
-
-      <!-- 名字 -->
-      <div class="name-zone"><input class="name-input" id="aboutName" placeholder="TA 的名字" maxlength="12"></div>
-
-      <!-- 关于他 -->
-      <div class="section-label">关于他</div>
-      <textarea class="persona-text" id="personaText" maxlength="1000"
-        placeholder="TA 是一个怎样的人？性格、说话风格、和你的关系、口头禅……写得越具体，TA 越像真的。"></textarea>
-      <div class="persona-count"><span id="personaCount">0</span>/1000</div>
-
-      <!-- 形象（通话背景） -->
-      <div class="section-label">形象 · 通话背景</div>
-      <div class="image-row" id="imageRow"></div>
-      <div class="hint">竖图最佳 · 最多 3 张，通话时随机铺满屏幕</div>
-
-      <!-- 音色（上传 / 录制 TA 的声音） -->
-      <div class="section-label">音色</div>
-      <div class="voice-box">
-        <div class="voice-bar hidden" id="voiceBar">
-          <button class="voice-play" id="btnVoicePlay"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></button>
-          <div class="voice-info">
-            <div class="voice-title">TA 的音色</div>
-            <div class="voice-len" id="voiceLen"></div>
-          </div>
-          <button class="voice-mini danger" id="btnVoiceDel">删除</button>
+  return (
+    <div className="auth-page">
+      <div className="auth-wrap">
+        {/* 图标 + 标题固定在上方，不随登录/注册切换移动 */}
+        <div className="auth-hero">
+          <Logo />
+          <h1 className="auth-title">去见他</h1>
+          <p className="auth-sub">{mode === 'login' ? '欢迎回来' : '开启新体验'}</p>
         </div>
-        <div class="voice-rec hidden" id="voiceRec">
-          <span class="rec-dot"></span>
-          <span class="rec-time" id="voiceRecTime">00:00</span>
-          <span class="rec-tip">录音中…</span>
-          <button class="voice-mini" id="btnVoiceStop">停止</button>
-        </div>
-        <div class="voice-acts" id="voiceActs">
-          <button class="voice-act" id="btnVoiceUpload">上传音频</button>
-          <button class="voice-act" id="btnVoiceRecord">录制声音</button>
+
+        <form onSubmit={submit}>
+          <input
+            className="auth-input"
+            placeholder={mode === 'login' ? '账号 / 手机号' : '手机号'}
+            maxLength={24}
+            autoComplete="off"
+            value={form.name}
+            onChange={onField('name')}
+          />
+          <input
+            className="auth-input"
+            type="password"
+            placeholder="密码（至少 6 位）"
+            maxLength={24}
+            value={form.pwd}
+            onChange={onField('pwd')}
+          />
+          {mode === 'register' && (
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="确认密码"
+              maxLength={24}
+              value={form.confirm}
+              onChange={onField('confirm')}
+            />
+          )}
+          {mode === 'register' && (
+            <input
+              className="auth-input"
+              placeholder="邀请码"
+              maxLength={24}
+              autoComplete="off"
+              value={form.invite}
+              onChange={onField('invite')}
+            />
+          )}
+
+          <button className="auth-btn" type="submit">
+            {mode === 'login' ? '登录' : '注册'}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          {mode === 'login' ? (
+            <span>
+              还没有账号？
+              <button type="button" className="link" onClick={() => setMode('register')}>去注册</button>
+            </span>
+          ) : (
+            <span>
+              已有账号？
+              <button type="button" className="link" onClick={() => setMode('login')}>返回登录</button>
+            </span>
+          )}
         </div>
       </div>
-      <div class="hint">录一段 TA 的声音，之后可以用这个音色生成语音</div>
+
+      {toast && <div className="toast">{toast}</div>}
     </div>
-    <input type="file" id="photoInputEdit" accept="image/*" hidden>
-    <input type="file" id="imageInput" accept="image/*" hidden>
-    <input type="file" id="voiceInput" accept="audio/*" hidden>
-  </section>
+  );
+}
 
-  <!-- ⑥ 联系人详情（从通讯录点进去） -->
-  <section class="screen" id="screenContact">
-    <header class="nav">
-      <div class="nav-side"><button class="link-btn" id="btnBack">‹ 通讯录</button></div>
-      <div class="nav-title"></div>
-      <div class="nav-side"><button class="link-btn" id="btnEdit">编辑</button></div>
-    </header>
-    <div class="contact-hero">
-      <div class="avatar-wrap" id="detailAvatarWrap" title="点击更换照片"></div>
-      <h1 id="detailName">柏源</h1>
-      <p class="sub">手机</p>
-    </div>
-    <div class="action-grid">
-      <button class="action" id="btnMessage"><span class="a-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5C4 7.9 7.6 5 12 5s8 2.9 8 6.5-3.6 6.5-8 6.5c-.7 0-1.4-.1-2-.2L5 20l1.2-2.7C4.8 16 4 13.9 4 11.5z"/></svg></span><span>信息</span></button>
-      <button class="action" id="btnCall"><span class="a-ico green"><svg viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 4-2 1.5a12 12 0 0 0 5.5 5.5L16 13l4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></svg></span><span>打电话</span></button>
-      <button class="action" disabled><span class="a-ico orange"><svg viewBox="0 0 24 24"><path d="M12 6.5C10.5 5.2 8.4 4.5 6 4.5H4v13h2c2.4 0 4.5.7 6 2 1.5-1.3 3.6-2 6-2h2v-13h-2c-2.4 0-4.5.7-6 2z"/><path d="M12 6.5v13"/></svg></span><span>背单词</span></button>
-    </div>
-    <div class="card">
-      <div class="card-row tappable" id="personaRow">
-        <span class="k">关于他</span>
-        <span class="v" id="detailPersona"></span>
-        <span class="go">›</span>
-      </div>
-    </div>
-    <div class="card gap-top">
-      <div class="card-row del-row tappable" id="btnDeleteContact">删除联系人</div>
-    </div>
-    <input type="file" id="photoInputEdit2" accept="image/*" hidden>
-  </section>
-
-  <!-- ⑥b 功能兑换 · 免费卡 / VIP 卡 -->
-  <section class="screen" id="screenVip">
-    <header class="nav">
-      <div class="nav-side"><button class="link-btn" id="btnVipBack">‹ 设置</button></div>
-      <div class="nav-title">功能兑换</div>
-      <div class="nav-side"></div>
-    </header>
-
-    <div class="plan-card free" id="freeCard">
-      <div class="plan-badge">免费卡</div>
-      <div class="plan-state" id="freeState">未开通</div>
-      <div class="plan-sub" id="freeSub">输入兑换码，开通免费版</div>
-      <div class="plan-code">
-        <input id="freeCode" placeholder="免费卡兑换码" maxlength="24" autocomplete="off">
-        <button class="plan-btn" id="btnFreeRedeem">兑换</button>
-      </div>
-    </div>
-
-    <div class="plan-card vip" id="vipHero">
-      <div class="plan-badge">VIP</div>
-      <div class="plan-state" id="vipState">未开通 VIP</div>
-      <div class="plan-sub" id="vipSub">输入兑换码，开启完整体验</div>
-      <div class="plan-code">
-        <input id="vipCode" placeholder="VIP 兑换码" maxlength="24" autocomplete="off">
-        <button class="plan-btn" id="btnRedeem">兑换</button>
-      </div>
-    </div>
-
-    <div class="section-label">VIP 权益</div>
-    <div class="card">
-      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>永久记忆包 · 你的喜好他都记得</div>
-      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>技能学习 · 陪你共同进步</div>
-      <div class="vip-row"><svg class="ok-ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>主动来电 · 他也会想你想到打电话</div>
-    </div>
-  </section>
-
-  <!-- ⑦ 通话中（与「打电话」前端一致） -->
-  <section class="screen call" id="screenCall">
-    <div class="call-bg" id="callBg"></div>
-    <div class="call-shade"></div>
-
-    <div class="call-top">
-      <div class="call-name" id="callName">柏源</div>
-      <div class="call-timer" id="callTimer">正在呼叫…</div>
-    </div>
-
-    <!-- 字幕区（可开关） -->
-    <div class="call-mid">
-      <div class="subtitle hidden" id="subtitleBox">
-        <p class="sub-label" id="subtitleLabel">柏源</p>
-        <p class="sub-text" id="subtitleText"></p>
-      </div>
-      <div class="thinking hidden" id="thinking">
-        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-      </div>
-      <div class="err hidden" id="errBox"></div>
-    </div>
-
-    <div class="call-bottom">
-      <!-- 用户输入 -->
-      <div class="input-row">
-        <input id="msgInput" type="text" placeholder="输入要说的话…" autocomplete="off" maxlength="200">
-        <button id="btnSend" class="send-btn">发送</button>
-      </div>
-
-      <!-- 功能行：静音 / 字幕 / 录音 -->
-      <div class="call-tools">
-        <button class="tool" id="btnMute"><span class="t-ico"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></svg></span><span class="t-label">静音</span></button>
-        <button class="tool" id="btnSubtitle"><span class="t-ico"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 12h4M14 12h3"/></svg></span><span class="t-label">字幕 关</span></button>
-        <button class="tool" id="btnRecord"><span class="t-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg></span><span class="t-label">录音</span></button>
-      </div>
-
-      <!-- 挂断 -->
-      <button class="hangup" id="btnHangup" aria-label="挂断">
-        <svg viewBox="0 0 32 32" width="30" height="30"><path fill="#fff" d="M16 8.5c-4.2 0-8.1 1.5-11.1 4.1-.5.4-.7 1.1-.4 1.7l1.7 3.1c.3.6 1 .8 1.6.6l4.1-1.4c.5-.2.9-.7.9-1.3v-2.3c2-.6 4.2-.6 6.2 0v2.3c0 .6.3 1.1.9 1.3l4.1 1.4c.6.2 1.3 0 1.6-.6l1.7-3.1c.3-.6.1-1.3-.4-1.7C24.1 10 20.2 8.5 16 8.5z"/></svg>
-      </button>
-      <div class="home-indicator"></div>
-    </div>
-  </section>
-
-  <!-- 底部导航：聊天 / 通讯录 / 关于他 / 设置 -->
-  <nav class="tabbar" id="tabbar">
-    <button class="tab-item active" data-screen="screenChatList">
-      <span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M4 11.5C4 7.9 7.6 5 12 5s8 2.9 8 6.5-3.6 6.5-8 6.5c-.7 0-1.4-.1-2-.2L5 20l1.2-2.7C4.8 16 4 13.9 4 11.5z"/></svg></span>
-      <span>聊天</span>
-    </button>
-    <button class="tab-item" data-screen="screenContacts">
-      <span class="tab-ico"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><circle cx="12" cy="10" r="2.4"/><path d="M8.5 16.2c.7-1.5 2-2.3 3.5-2.3s2.8.8 3.5 2.3"/></svg></span>
-      <span>通讯录</span>
-    </button>
-    <button class="tab-item" data-screen="screenAboutList">
-      <span class="tab-ico"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.3-7-9.2C5 8 6.8 6.5 9 6.5c1.4 0 2.5.7 3 1.5.5-.8 1.6-1.5 3-1.5 2.2 0 4 1.5 4 4.3 0 4.9-7 9.2-7 9.2z"/></svg></span>
-      <span>关于他</span>
-    </button>
-    <button class="tab-item" data-screen="screenSettings">
-      <span class="tab-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M18 6l-1.6 1.6M7.6 16.4L6 18"/></svg></span>
-      <span>设置</span>
-    </button>
-  </nav>
-
-  <!-- 聊天页右上角 ＋ 的下拉菜单 -->
-  <div class="pm-mask hidden" id="pmMask"></div>
-  <div class="plus-menu hidden" id="plusMenu">
-    <button class="pm-item" id="pmGroup"><span class="pm-ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="2.6"/><path d="M4.5 17c.6-2.4 2.4-3.6 4.5-3.6s3.9 1.2 4.5 3.6"/><circle cx="16.6" cy="8.6" r="2.1"/><path d="M15.2 13.2c2 .2 3.5 1.3 4 3.3"/></svg></span>发起群聊</button>
-    <button class="pm-item" id="pmAdd"><span class="pm-ico"><svg viewBox="0 0 24 24"><circle cx="10" cy="8.5" r="3"/><path d="M4.5 18c.6-2.7 2.8-4.2 5.5-4.2 1 0 1.9.2 2.7.6"/><path d="M17.5 13.5v6M14.5 16.5h6"/></svg></span>添加好友</button>
-  </div>
-  <div class="toast hidden" id="toast"></div>
-
-</div>
-<script src="app.js"></script>
-<script>
-// 固定 390×844（iPhone 13 Pro），窗口放不下时整体等比缩放
-const fitPhone = () => {
-  const s = Math.min(1, (innerWidth - 24) / 390, (innerHeight - 24) / 844);
-  document.getElementById('phone').style.setProperty('--scale', s.toFixed(4));
-};
-fitPhone();
-addEventListener('resize', fitPhone);
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
